@@ -1,3 +1,148 @@
+[README.md](https://github.com/user-attachments/files/27362757/README.md)
+# Tame ARK — Auto Narcotic
+
+Windows tool that automates narcotic administration when taming animals in **ARK: Survival Ascended**.
+
+---
+
+## What is it for?
+
+When taming an animal by knocking it out in ARK, you must regularly give it narcotics to keep its torpor high enough and prevent it from waking up. This process can last several tens of minutes and requires constant monitoring.
+
+**Tame ARK** watches the torpor bar for you and automatically presses `E` (force-feed) at the right moment, without you needing to leave the animal's inventory.
+
+---
+
+## How it works
+
+### Torpor reading
+
+The application continuously captures a small screen region (the torpor row in the animal's inventory) and reads the values via OCR (optical character recognition). The displayed value follows the format `current / maximum`, for example `423.5 / 499.0`.
+
+### Trigger logic
+
+The `E` press is triggered only if **all** of these conditions are met:
+
+| Condition | Detail |
+|---|---|
+| Torpor ≤ threshold | `torpor_max − 40 − margin` |
+| Torpor is decreasing | two consecutive readings confirm the drop |
+| Narcotics needed | the calculation indicates at least 1 narcotic is missing |
+| Valid reading | value within bounds, realistic variation between readings |
+
+After each press, the tool waits for a new confirmed drop before pressing again, preventing any burst-pressing.
+
+### Threshold and safety margin
+
+- **Press threshold** = `torpor_max − 40 − margin`
+- **Torpor target** (level aimed at after the narcotic) = `torpor_max − margin`
+- The **margin** is adjustable from 0 to 5 directly in the interface
+
+*Example with torpor_max = 200 and margin = 3:*
+- Press triggered at **157** (200 − 40 − 3)
+- Target: **197** (200 − 3)
+
+### Automatic context detection
+
+When you close an animal's inventory or switch to another one, the tool detects it automatically (no valid reading) and resets its internal state. It is ready to act as soon as you open the next animal's inventory.
+
+---
+
+## Interface
+
+| Element | Role |
+|---|---|
+| **Trigger margin** | Adjusts the distance from the max (0 to 5) |
+| **Press at** | Exact torpor value that will trigger the press (updated in real time) |
+| **Start/stop key** | Configurable global hotkey (works even when ARK is in the foreground) |
+| **Calibrate zone** | Select the screen region where torpor numbers are read |
+| **Calibrate label** | Select the region where the word "Torpor" appears (used for overlay auto-hiding) |
+| **Test OCR** | Verifies that the reading zone captures values correctly, saves debug images |
+| **Overlay** | Displays a transparent mini-panel above the game |
+| **Start / Stop** | Starts or stops monitoring (also accessible via the configured hotkey) |
+
+### Overlay
+
+The mini-overlay stays above ARK and displays torpor, the press threshold, and the time of the last `E` press in real time.
+
+- 🔓 **Unlocked**: draggable with the mouse
+- 🔒 **Locked**: clicks pass through to ARK (click-through), keyboard focus stays on the game
+- **Auto-hides** when you are not in a knocked-out animal's inventory
+- **Reappears** as soon as you open a sleeping creature's inventory — only if the "Torpor" label is detected, to avoid false re-displays
+
+To unlock the overlay from the game: click the **🔒 Unlock** button in the main window.
+
+---
+
+## Installation
+
+### Requirements
+
+- Windows 10 / 11
+- Python 3.x — [python.org](https://www.python.org/)
+
+### Steps
+
+1. Download or clone this repository
+2. Double-click **`install.bat`**
+   - Installs the required Python modules (`mss`, `Pillow`, `pytesseract`, `pyautogui`, `keyboard`)
+   - Installs Tesseract OCR automatically via winget if missing
+
+### Launch
+
+| File | Usage |
+|---|---|
+| `Lancer Tame ARK.vbs` | Normal launch (no console) |
+| `tame_ark.bat` | Launch with console (useful for seeing errors) |
+
+---
+
+## Calibration (first use or new PC)
+
+The reading zone must be calibrated once to match your screen resolution.
+
+1. Launch ARK and open the inventory of a knocked-out creature
+2. In the application, click **Calibrate zone** and draw around the torpor numbers (e.g. `423.5 / 499.0`)
+3. Click **Calibrate label** and draw around only the word "Torpor" to the left of the numbers
+4. Click **Test OCR** to verify that reading works correctly
+
+Both zones are saved in the configuration and automatically reloaded on next startup.
+
+---
+
+## Configuration
+
+The configuration is automatically saved in:
+```
+%APPDATA%\TameARK\config.json
+```
+
+It contains the hotkey, the margin, the calibrated zones, and the window positions. The main window position is also saved automatically when you move it.
+
+---
+
+## Dependencies
+
+| Tool | Role |
+|---|---|
+| [Tesseract OCR](https://github.com/UB-Mannheim/tesseract/wiki) | Text recognition engine |
+| [mss](https://python-mss.readthedocs.io/) | Fast screen capture |
+| [Pillow](https://python-pillow.org/) | Image processing (contrast, sharpness) |
+| [pytesseract](https://github.com/madmaze/pytesseract) | Python interface for Tesseract |
+| [pyautogui](https://pyautogui.readthedocs.io/) | Keyboard key simulation |
+| [keyboard](https://github.com/boppreh/keyboard) | Global hotkey (driver-level) |
+
+---
+
+## Notes
+
+- ARK must be in **windowed** or **borderless windowed** mode for the capture zone to match the configured screen position.
+- The tool does not inject anything into the game: it reads the screen and simulates a key press, exactly as a player would.
+
+---
+
+---
+
 # Tame ARK — Auto Narcotique
 
 Outil Windows qui automatise l'administration de narcotiques lors de l'apprivoisement d'animaux dans **ARK: Survival Ascended**.
