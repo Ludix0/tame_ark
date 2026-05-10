@@ -74,7 +74,8 @@ def main():
         app = App(root)
 
         def on_close():
-            app._hide_overlay()
+            app._save_config()
+            app._hide_overlay(save=False)
             app.monitoring = False
             try:
                 keyboard.unhook_all()

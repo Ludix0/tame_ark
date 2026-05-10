@@ -40,53 +40,71 @@ class Overlay:
     # ── Construction ─────────────────────────────────────────────────────────
 
     def _build(self):
-        BG   = "#0a0a14"
-        HDR  = "#12122a"
-        CYAN = "#00d4ff"
-        GREY = "#4a4a6a"
+        BG     = "#07131a"   # fond quasi noir teinté teal (comme le jeu)
+        HDR    = "#0c2030"   # barre de titre teal sombre
+        CYAN   = "#00cfe0"   # cyan-teal vif (couleur des bordures ARK)
+        GREY   = "#5a9aaa"   # texte secondaire teal atténué
+        BORDER = "#00b8c8"   # couleur de bordure extérieure
 
-        hdr = tk.Frame(self.win, bg=HDR, pady=3)
+        # Bordure fine autour de toute la fenêtre
+        self.win.configure(bg=BORDER)
+        outer = tk.Frame(self.win, bg=BORDER, padx=1, pady=1)
+        outer.pack(fill="both", expand=True)
+
+        hdr = tk.Frame(outer, bg=HDR, pady=4)
         hdr.pack(fill="x")
         tk.Label(hdr, text="≡  TAME ARK", bg=HDR, fg=CYAN,
                  font=("Consolas", 7, "bold"), padx=8).pack(side="left")
 
-        close_lbl = tk.Label(hdr, text="×", bg=HDR, fg="#666",
+        close_lbl = tk.Label(hdr, text="×", bg=HDR, fg="#4a8898",
                               font=("Segoe UI", 11, "bold"), cursor="hand2", padx=8)
         close_lbl.pack(side="right")
         close_lbl.bind("<Button-1>", lambda e: self.app._hide_overlay())
 
         self.lock_lbl = tk.Label(
             hdr, text=("🔒" if self.locked else "🔓"),
-            bg=HDR, fg="#666", font=("Segoe UI", 8), cursor="hand2", padx=6
+            bg=HDR, fg="#4a8898", font=("Segoe UI", 8), cursor="hand2", padx=6
         )
         self.lock_lbl.pack(side="right")
         self.lock_lbl.bind("<Button-1>", self._toggle_lock)
 
-        body = tk.Frame(self.win, bg=BG, padx=12, pady=8)
+        # Séparateur teal sous le header
+        tk.Frame(outer, bg=CYAN, height=1).pack(fill="x")
+
+        body = tk.Frame(outer, bg=BG, padx=12, pady=8)
         body.pack(fill="both")
 
         self.status_lbl = tk.Label(body, textvariable=self.app.status_var,
-                                    bg=BG, fg="#888", font=("Consolas", 8, "bold"))
+                                    bg=BG, fg=GREY, font=("Consolas", 8, "bold"))
         self.status_lbl.pack(anchor="w", pady=(0, 4))
 
-        def stat_row(prefix, var, color):
+        self._prefix_labels = []
+
+        def stat_row(key, var, color):
             f = tk.Frame(body, bg=BG)
             f.pack(anchor="w", pady=2)
-            tk.Label(f, text=prefix, bg=BG, fg=GREY, font=("Consolas", 9)).pack(side="left")
+            prefix = tk.Label(f, text=self.app._t(key), bg=BG, fg=GREY,
+                               font=("Consolas", 9))
+            prefix.pack(side="left")
             tk.Label(f, textvariable=var, bg=BG, fg=color,
                      font=("Consolas", 13, "bold")).pack(side="left")
+            self._prefix_labels.append((prefix, key))
 
-        stat_row("↓  torpeur  ", self.app.torpor_var,    CYAN)
-        stat_row("E  appui à  ", self.app.threshold_var, "#ff9f43")
-        stat_row("✓  dernier  ", self.app.last_press_var,"#00b894")
+        stat_row("ov_torpor",   self.app.torpor_var,    CYAN)
+        stat_row("ov_press_at", self.app.threshold_var, "#e09030")
+        stat_row("ov_last",     self.app.last_press_var, "#30c890")
 
         self.app.status_var.trace_add("write", self._update_status_color)
         self._update_status_color()
 
     def _update_status_color(self, *_):
-        v = self.app.status_var.get()
-        color = "#00b894" if "Actif" in v else "#ffd700" if "Démarrage" in v else "#888"
+        state = getattr(self.app, "_status_state", "stopped")
+        color = "#30c890" if state == "active" else "#e0b030" if state == "starting" else "#5a9aaa"
         self.status_lbl.config(fg=color)
+
+    def update_lang(self):
+        for lbl, key in self._prefix_labels:
+            lbl.config(text=self.app._t(key))
 
     # ── Drag ─────────────────────────────────────────────────────────────────
 

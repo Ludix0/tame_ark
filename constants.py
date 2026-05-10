@@ -10,6 +10,7 @@ TESSERACT_PATHS = [
     os.path.expandvars(r"%LOCALAPPDATA%\Programs\Tesseract-OCR\tesseract.exe"),
 ]
 
-DEFAULT_HOTKEY  = "f6"
+DEFAULT_HOTKEY       = "f6"
+DEFAULT_NARCO_HOTKEY = "f7"
 CHECK_INTERVAL  = 0.075
 DEFAULT_REGION  = {"left": 975, "top": 664, "width": 120, "height": 23}
